@@ -1,35 +1,14 @@
 #!/bin/bash
 set -e
 
-echo "===================================="
-echo " Passivbot Runtime Entrypoint"
-echo "===================================="
+# Link các venv vào PATH để có thể gọi lệnh trực tiếp
+export PATH="/venv_pbgui/bin:/venv_pb7/bin:/venv_pb6/bin:$PATH"
 
-# ---- Paths ----
-PB6_DIR="/app/pb6"
-PB7_DIR="/app/pb7"
-PBGUI_DIR="/app/pbgui"
+# (Tùy chọn) Kiểm tra nếu folder config trống thì copy file mẫu hoặc khởi tạo
+if [ ! -d "/app/pbgui/data" ]; then
+    echo "Initializing data directory..."
+    mkdir -p /app/pbgui/data
+fi
 
-PB6_PYTHON="$PB6_DIR/venv/bin/python"
-PB7_PYTHON="$PB7_DIR/venv/bin/python"
-
-# ---- Sanity checks ----
-echo "[CHECK] PB6 Python:"
-$PB6_PYTHON --version
-
-echo "[CHECK] PB7 Python:"
-$PB7_PYTHON --version
-
-# Export for PBGUI usage
-export PB6_PYTHON
-export PB7_PYTHON
-
-# ---- Go to PBGUI ----
-cd "$PBGUI_DIR"
-
-echo "[START] PBGUI (Streamlit)"
-exec streamlit run pbgui.py \
-  --server.port=8507 \
-  --server.address=0.0.0.0 \
-  --server.enableCORS=false \
-  --server.enableXsrfProtection=false
+echo "Starting Passivbot GUI..."
+exec streamlit run ./pbgui.py --server.port=8501 --server.address=0.0.0.0
