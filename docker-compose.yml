@@ -11,7 +11,7 @@ services:
         PB7_VERSION: master                                                          # Set the version of PB7. Default is latest commit on main line
         PBGUI_VERSION: main                                                           # Set the version of PBGUI. Default is latest commit on main line
     ports:
-      - "8507:8507"
+      - "8501:8501"
     environment:
       - TZ=Asia/Ho_Chi_Minh
       - USERDATA=${USERDATA}                                                          # Environment variable for user data directory
