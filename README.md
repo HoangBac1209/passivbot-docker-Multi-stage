@@ -1,153 +1,75 @@
-## Dockerized Passivbot with pbgui
+Dockerized Passivbot with pbgui (Storage Optimized)
+This project provides an optimized Docker environment for running Passivbot (v6, v7) and PBGUI. The image is designed using Multi-stage Builds, reducing the size from 4.6GB to approximately ~3GB, making it ideal for low-storage VPS providers.
 
-[![Static Badge](https://img.shields.io/badge/docker-pull-blue)](https://hub.docker.com/r/halfbax/passivbot)
-![Static Badge](https://img.shields.io/badge/Compatible%20with-Passivbot%20v6-green)
-![Static Badge](https://img.shields.io/badge/Compatible%20with-Passivbot%20v7-green)
+🚀 Key Features
+Multi-stage Architecture: Separates the Build process (requires Rust, GCC) from the Runtime process, eliminating system bloat.
 
+Isolated Environments:
 
+PB6: Runs on a stable Python 3.10 environment.
 
-This Docker image provides a streamlined environment for running the Passivbot trading bot along with its graphical user interface, pbgui. Based on the lightweight `python:3.10-slim-buster` image, it includes all the necessary dependencies and setups for a hassle-free deployment.
+PB7 & PBGUI: Runs on the latest Python 3.12.
 
-### Features
+Extreme Storage Optimization:
 
-- **Base Image**: Built on `python:3.10-slim-buster`, ensuring a minimal and efficient footprint.
-- **Dependency Installation**: Installs essential tools such as Git, build-essential, Curl, and Rclone.
-- **Rust & Cargo**: Automatically installs the latest version of Rust and Cargo, enabling you to compile Rust projects.
-- **Repository Cloning**: Clones the required repositories for Passivbot and pbgui directly from GitHub.
-- **Virtual Environments**: Sets up isolated Python environments for each component (`pb6`, `pb7`, and `pbgui`), ensuring clean installations without conflicts.
-- **Dependency Management**: Installs all necessary Python packages from the requirements files for `pb6`, `pb7`, and `pbgui`.
-- **Port Exposure**: Exposes port 8501 for easy access to the Streamlit application.
-- **Default Command**: Runs the pbgui using Streamlit, ready for interaction on startup.
+Completely removes Ansible, PyArrow, and Ansible-runner (~1GB of overhead).
 
-### Quick start
-1. **Clone the Repository**
-   
-    First, clone this repository to your local machine using the following command:
+Automatically cleans up Rust compilers (Cargo), build tools, and Pip caches immediately after the build.
 
-    ```bash
-    git clone https://github.com/LeonSpors/passivbot-docker.git
-    ```
-    
-    <br>
+WebSocket Support: Pre-configured for Streamlit to ensure a smooth web interface.
 
-2. **Configure .env file**
-   
-    Open the .env file and set the following variable:
+🛠 Quick Start
+1. Clone and Configure
+Bash
 
-    ```bash
-    USERDATA=<location of the current folder>
-    ```
+git clone https://github.com/LeonSpors/passivbot-docker.git
+cd passivbot-docker
+Open the .env file and set your data path:
 
-    <br>
+Bash
 
-3. **Run setup**
+USERDATA=./pb_userdata
+2. Setup Directory Structure (Linux)
+Grant permissions and run the script to create the required data folders:
 
-    Set up the following directory structure based on your docker-compose.yml file:
+Bash
 
-    ```bash
-    pb_userdata
-    ├── configs
-    ├── historical_data
-    ├── pb6
-    │   ├── backtests
-    │   ├── caches
-    │   ├── configs
-    │   ├── optimize_results
-    │   └── optimize_results_analysis
-    ├── pb7
-    │   ├── backtests
-    │   ├── caches
-    │   ├── configs
-    │   ├── optimize_results
-    │   └── optimize_results_analysis
-    └── pbgui
-    ```
+chmod +x ./tools/setup.sh
+./tools/setup.sh
+3. Build and Run
+Use the following command for the cleanest build, avoiding residual cache:
 
-    ### Windows
+Bash
 
-    Simply run the setup.bat file located in the tools folder:
+docker compose build --no-cache && docker compose up -d
+🔄 Updating the Bot
+Since the system is optimized to save space, clicking the Update button on the Web GUI might re-install "bloat" libraries (like Ansible). To update safely while maintaining the small footprint, use the provided script:
 
-    ```bash
-    tools\setup.bat
-    ```
+Bash
 
-    ### Linux
+chmod +x update_bot.sh
+./update_bot.sh
+This script will: Pull the latest code -> Rebuild the Rust module (if needed) -> Automatically "de-bloat" the environment.
 
-    For Linux, you’ll first need to grant execute permissions to the setup.sh script and then run it:
+❓ FAQ
+Q: How do I check the current Image size? Run: docker images | grep passivbot. The optimized version should be around 2.8GB - 3.1GB.
 
-    ```bash
-    chmod +x ./tools/setup.sh
-    ./setup.sh
-    ```
+Q: Why can't I use pip directly inside the container? To avoid path conflicts, call pip through the corresponding virtual environment:
 
-    <br>
+Bash
 
-4. **Run the docker-compose file**
-    ```bash
-    docker compose up --build
-    ```
+docker exec -it <container_id> /venv_pbgui/bin/python -m pip list
+Q: My Nginx shows "Connection Error" repeatedly? You must add WebSocket support to your Nginx configuration:
 
-<br>
+Nginx
 
-### FAQ
+proxy_set_header Upgrade $http_upgrade;
+proxy_set_header Connection "upgrade";
+📁 Data Structure (Volumes)
+All critical data is stored in the directory defined in your USERDATA variable:
 
-#### What is the default password?
-The default password is `your-password`. You can change it in the file located at `pb_userdata/configs/secrets.toml`.
+configs/: Contains api-keys.json, pbgui.ini, and secrets.toml.
 
-<br>
+pb6/ & pb7/: Contains backtests, optimization results, and caches.
 
-#### Can I use Rclone for RBRemote?
-Yes! To use the Rclone feature of PBShare, simply add your `rclone.conf` file to the `pb_userdata/configs` directory.
-
-<br>
-
-#### Where should I place my API keys?
-Add your `api-keys.json` file to the `pb_userdata/configs` folder to configure API access.
-
-<br>
-
-#### How to configure PBGUI?
-Add your `pbgui.ini` file to the `pb_userdata/configs` folder.
-
-<br>
-
-#### How do I change the PBGUI password?
-Change the password in the `secrets.toml` file.
-
-<br>
-
-#### Can I access optimization, backtesting, or configuration files?
-Absolutely. All optimization, backtesting, and config files are stored in the `pb_userdata` directory under the appropriate subfolders (e.g., `pb6`, `pb7`).
-
-<br>
-
-#### How can I update PBGUI and Passivbot?
-To update the software, follow these steps based on your situation:
-
-- **Scenario A: Same Branch**  
-  If you're using the same Git branch and just need to restart the container, run:
-
-  ```bash
-  docker compose restart
-  ```
-
-  <br>
-
-- **Scenario A: Different Branch**  
-  If you want to switch to a different Git branch, first update the `docker-compose.yml` file to specify the desired branch. Then, restart the container:
-
-  ```bash
-  docker-compose down
-  docker-compose up --build
-  ```
-
-<br>
-
-#### How can I get shell access to the system?
-You can access the system by attaching to the running Docker container. Use the following command:
-
-```bash
-docker exec -it <container_id> /bin/bash
-```
-
-
+Note for 20GB VPS: Regularly run docker system prune -f after updates to release storage from old image layers.
