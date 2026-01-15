@@ -35,6 +35,12 @@ RUN apt-get update && apt-get install -y \
     tzdata \
     curl \
     && rm -rf /var/lib/apt/lists/*
+# Cleanup
+RUN rm -rf /app/pb6/.git /app/pb7/.git /app/pbgui/.git && \
+    rm -rf /app/pb6/tests /app/pb6/docs \
+           /app/pb7/tests /app/pb7/docs && \
+    find /app -type d -name "__pycache__" -exec rm -rf {} + && \
+    find /app -name "*.pyc" -delete
 
 # Copy bots
 COPY --from=pb6-builder /build/pb6 /app/pb6
