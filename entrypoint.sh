@@ -4,11 +4,10 @@ set -e
 # Link các venv vào PATH để có thể gọi lệnh trực tiếp
 export PATH="/venv_pbgui/bin:/venv_pb7/bin:/venv_pb6/bin:$PATH"
 
-# (Tùy chọn) Kiểm tra nếu folder config trống thì copy file mẫu hoặc khởi tạo
-if [ ! -d "/app/pbgui/data" ]; then
-    echo "Initializing data directory..."
-    mkdir -p /app/pbgui/data
-fi
+# Khởi tạo thư mục data nếu mount volume bị trống
+mkdir -p /app/pbgui/data /app/pb6/configs /app/pb7/configs
 
 echo "Starting Passivbot GUI..."
-exec streamlit run ./pbgui.py --server.port=8501 --server.address=0.0.0.0
+# Sử dụng trực tiếp python từ venv pbgui để chạy streamlit
+exec /venv_pbgui/bin/python -m streamlit run ./pbgui.py --server.port=8501 --server.address=0.0.0.0
+#docker compose down && docker system prune -a --volumes -f && docker builder prune -a -f && docker compose build --no-cache && docker compose up -d
