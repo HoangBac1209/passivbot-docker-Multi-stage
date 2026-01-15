@@ -57,7 +57,6 @@ RUN git clone -b ${PBGUI_VERSION} https://github.com/msei99/pbgui.git . && \
     /venv_pbgui/bin/python -m pip cache purge
 
 # --- Stage Final: Runtime ---
-# --- Stage Final: Runtime ---
 FROM python:3.12-slim
 WORKDIR /app/pbgui
 RUN apt-get update && apt-get install -y git && apt-get clean && rm -rf /var/lib/apt/lists/*
