@@ -41,8 +41,8 @@ COPY --from=pb6-builder /build/pb6 /app/pb6
 COPY --from=pb7-builder /build/pb7 /app/pb7
 
 # PBGUI
-RUN pip install --no-cache-dir streamlit
-RUN git clone https://github.com/LeonSpors/pbgui.git /app/pbgui
+# Copy PBGUI
+COPY --from=pbgui-builder /build/pbgui /app/pbgui
 
 # Entrypoint
 COPY base/src/entrypoint.sh /usr/local/bin/entrypoint.sh
