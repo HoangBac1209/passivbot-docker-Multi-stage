@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONTAINER_NAME="pass-docker-main-passivbot-1"
+CONTAINER_NAME="passivbot-docker-passivbot-1"
 
 # Hàm cập nhật thông minh
 update_repo() {
@@ -37,14 +37,33 @@ docker exec -t $CONTAINER_NAME bash -c "
 echo "--- 4. Cài đặt thư viện cho PBGUI & Hút mỡ ---"
 docker exec -t $CONTAINER_NAME bash -c "
     /venv_pbgui/bin/python -m pip install -r /app/pbgui/requirements.txt && \
-    /venv_pbgui/bin/python -m pip uninstall -y ansible ansible-core ansible-runner paramiko bcrypt pyarrow && \
+    /venv_pbgui/bin/python -m pip uninstall -y ansible ansible-core llvmlite && \
     /venv_pb7/bin/python -m pip uninstall -y maturin mkdocs mkdocs-material pylint flake8 prospector astroid isort babel pyecharts openpyxl && \
     /venv_pbgui/bin/python -m pip cache purge && \
     /venv_pb7/bin/python -m pip cache purge && \
     find /app -name '*.pyc' -delete && \
     find /app -name '__pycache__' -delete"
 
-echo "--- 5. Khởi động lại ---"
+echo "--- 5. Khởi động lại Container ---"
 docker compose restart
 
-echo "Xong! Hệ thống đã được nén gọn .git và cập nhật nhanh."
+echo "Waiting 20s for container to stabilize..."
+sleep 20
+
+echo "--- 6. Khởi động lại Background Services (PBRun & PBCoinData) ---"
+docker exec -t $CONTAINER_NAME bash -c "
+    # Giết các tiến trình cũ để tránh xung đột
+    pkill -f PBRun.py || true
+    pkill -f PBCoinData.py || true
+
+    # Chạy lại bằng đường dẫn tuyệt đối của venv để an toàn tuyệt đối
+    cd /app/pbgui && \
+    /venv_pbgui/bin/python PBRun.py > /dev/null 2>&1 & \
+    /venv_pbgui/bin/python PBCoinData.py > /dev/null 2>&1 &
+
+    echo 'Services PBRun and PBCoinData are now running in background.'"
+
+echo "--- 7. Dọn dẹp rác hệ thống (Final Cleanup) ---"
+docker system prune -f && docker builder prune -a -f
+
+echo "Xong! Hệ thống đã được cập nhật, nén gọn .git và khởi động lại dịch vụ."
