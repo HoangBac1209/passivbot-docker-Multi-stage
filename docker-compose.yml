@@ -1,5 +1,5 @@
 # Dockerized Passivbot with PBGUI
-# https://github.com/LeonSpors/passivbot-docker
+#
 
 services:
   passivbot:
@@ -11,15 +11,17 @@ services:
         PB7_VERSION: master                                                          # Set the version of PB7. Default is latest commit on main line
         PBGUI_VERSION: main                                                           # Set the version of PBGUI. Default is latest commit on main line
     ports:
-      - "8501:8501"
+      - "8507:8507"
     environment:
+      - TZ=Asia/Ho_Chi_Minh
       - USERDATA=${USERDATA}                                                          # Environment variable for user data directory
     restart: always
     volumes:
+      - /etc/localtime:/etc/localtime:ro
       # Make sure to create a .env file in the same directory
       # This file should define the USERDATA variable for volume mounting
-      
       # PBGUI
+      #- ${USERDATA}/configs/config.toml:/app/pbgui/.streamlit/config.toml
       - ${USERDATA}/configs/secrets.toml:/app/pbgui/.streamlit/secrets.toml           # Required for PBGUI authentication
       - ${USERDATA}/configs/pbgui.ini:/app/pbgui/pbgui.ini                            # Required for PBGUI configuration
       - ${USERDATA}/pbgui:/app/pbgui/data                                             # Required for PBGUI data storage
@@ -45,3 +47,5 @@ services:
       - ${USERDATA}/pb7/caches:/app/pb7/caches                                        # Caches for PB7
       - ${USERDATA}/pb7/optimize_results:/app/pb7/optimize_results                    # Optimization results for PB7
       - ${USERDATA}/pb7/optimize_results_analysis:/app/pb7/optimize_results_analysis  # Analysis of optimization results for PB7
+   # command: sh -c "exec streamlit run ./pbgui.py --server.port=8507  --server.address=0.0.0.0"
+   # command: sh -c "exec streamlit run ./pbgui.py --server.port=8507  --server.address=0.0.0.0  --server.enableCORS=false  --server.enableXsrfProtection=false"
