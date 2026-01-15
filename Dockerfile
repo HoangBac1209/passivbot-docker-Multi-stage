@@ -39,7 +39,7 @@ ARG PBGUI_VERSION=main
 RUN git clone -b ${PBGUI_VERSION} https://github.com/msei99/pbgui.git . && \
     /venv_pbgui/bin/python -m pip install --no-cache-dir -r requirements.txt && \
     # Gỡ bỏ Ansible và các thư viện SSH (tiết kiệm ~1GB) - KHÔNG xóa numpy/numba
-    /venv_pbgui/bin/python -m pip uninstall -y ansible ansible-core paramiko bcrypt llvmlite && \
+    /venv_pbgui/bin/python -m pip uninstall -y ansible ansible-core bcrypt llvmlite && \
     /venv_pbgui/bin/python -m pip cache purge && \
     find /venv_pbgui -type d -name "__pycache__" -exec rm -rf {} + && \
     rm -rf .git
